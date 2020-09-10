@@ -2,9 +2,10 @@ var express = require('express');
 var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
+var nodemailer = require('nodemailer');
+require('dotenv').config();
 var app = express();
-var watchArray = [];
-var dateArray = [];
+
 app.get('/scrape', function (req, res) {
   url = 'https://klocksnack.se/search/13228812/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
 
@@ -13,7 +14,8 @@ app.get('/scrape', function (req, res) {
       var $ = cheerio.load(html);
 
       var title, date;
-
+      var watchArray = [];
+      var dateArray = [];
       var json = { title: watchArray, date: dateArray };
 
       // https://stackoverflow.com/questions/47840449/parse-text-from-html-form-inside-table-cell-with-cheerio
@@ -21,7 +23,6 @@ app.get('/scrape', function (req, res) {
       // Kolla vid 49:00 https://www.youtube.com/watch?v=6R7u6EMWaa4
       $('.titleText').filter(function () {
         var data = $(this);
-        console.log(data);
 
         // Kolla vad log data / title är.
         // Testa att ändra json till title och date igen och sen pusha de till array.
@@ -36,7 +37,6 @@ app.get('/scrape', function (req, res) {
           .replace(/(?!\b\s+\b)\s+/g, ''); // Tar bort mellanslag
 
         watchArray.push(title);
-        json.title = watchArray.forEach;
       });
     } else {
       console.log(error);
@@ -50,8 +50,34 @@ app.get('/scrape', function (req, res) {
       dateArray.push(date);
     });
 
+    var dateAndTime = new Date().toLocaleString();
+    var text = `${watchArray[0]} ${dateArray[0]} skickat: ${dateAndTime} ojikerregoijregoijergjioreg`;
+    console.log(text);
     json.title = watchArray[0];
     json.date = dateArray[0];
+
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD,
+      },
+    });
+
+    let mailoptions = {
+      from: 'david99gust@gmail.com',
+      to: 'davidgust99@gmail.com',
+      subject: 'KS test',
+      text: text,
+    };
+
+    transporter.sendMail(mailoptions, function (err, data) {
+      if (error) {
+        console.log('error occured', err);
+      } else {
+        console.log('Email sent');
+      }
+    });
 
     // To write to the system we will use the built in 'fs' library.
     // In this example we will pass 3 parameters to the writeFile function
