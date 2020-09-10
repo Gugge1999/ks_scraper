@@ -17,9 +17,17 @@ app.get('/scrape', function (req, res) {
       var json = { title: watchArray, date: dateArray };
 
       // https://stackoverflow.com/questions/47840449/parse-text-from-html-form-inside-table-cell-with-cheerio
+
+      // Kolla vid 49:00 https://www.youtube.com/watch?v=6R7u6EMWaa4
       $('.titleText').filter(function () {
         var data = $(this);
+        console.log(data);
 
+        // Kolla vad log data / title är.
+        // Testa att ändra json till title och date igen och sen pusha de till array.
+        // Är de i fel ordning går det att göra reverse
+        // Kanske skapa ett genensamt objekt för namn och datum?
+        // Kanske skapa ett till objekt och köra en for loop där man lägger in varannat array index?
         title = data
           .children()
           .children()
