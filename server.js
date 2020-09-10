@@ -51,7 +51,7 @@ app.get('/scrape', function (req, res) {
     });
 
     var dateAndTime = new Date().toLocaleString();
-    var text = `${watchArray[0]} ${dateArray[0]} skickat: ${dateAndTime} ojikerregoijregoijergjioreg`;
+    var text = `${watchArray[0]} ${dateArray[0]} skickat: ${dateAndTime} nodemon`;
     console.log(text);
     json.title = watchArray[0];
     json.date = dateArray[0];
@@ -65,7 +65,7 @@ app.get('/scrape', function (req, res) {
     });
 
     let mailoptions = {
-      from: 'david99gust@gmail.com',
+      from: 'ksappscraper@gmail.com',
       to: 'davidgust99@gmail.com',
       subject: 'KS test',
       text: text,
