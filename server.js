@@ -3,7 +3,8 @@ var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
 var app = express();
-
+var watchArray = [];
+var dateArray = [];
 app.get('/scrape', function (req, res) {
   url = 'https://klocksnack.se/search/13228812/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
 
@@ -12,8 +13,7 @@ app.get('/scrape', function (req, res) {
       var $ = cheerio.load(html);
 
       var title, date;
-      var watchArray = [];
-      var dateArray = [];
+
       var json = { title: watchArray, date: dateArray };
 
       // https://stackoverflow.com/questions/47840449/parse-text-from-html-form-inside-table-cell-with-cheerio
@@ -36,6 +36,7 @@ app.get('/scrape', function (req, res) {
           .replace(/(?!\b\s+\b)\s+/g, ''); // Tar bort mellanslag
 
         watchArray.push(title);
+        json.title = watchArray.forEach;
       });
     } else {
       console.log(error);
@@ -49,10 +50,8 @@ app.get('/scrape', function (req, res) {
       dateArray.push(date);
     });
 
-    json.title = watchArray;
-    json.date = dateArray;
-
-    console.log(`${watchArray[0]} bajs ${dateArray[0]}`);
+    json.title = watchArray[0];
+    json.date = dateArray[0];
 
     // To write to the system we will use the built in 'fs' library.
     // In this example we will pass 3 parameters to the writeFile function
