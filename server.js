@@ -95,5 +95,5 @@ app.get('/scrape', function (req, res) {
 });
 
 app.listen('8081');
-console.log(`Server runnig on: http://localhost:8081/scrape`);
+console.log(`Server running on: http://localhost:8081/scrape`);
 exports = module.exports = app;
