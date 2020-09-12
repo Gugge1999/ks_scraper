@@ -3,6 +3,7 @@ var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
 var nodemailer = require('nodemailer');
+const { setInterval } = require('timers');
 require('dotenv').config();
 var app = express();
 
@@ -13,22 +14,18 @@ app.get('/scrape', function (req, res) {
     if (!error) {
       var $ = cheerio.load(html);
 
+      // ideer:
+      // Gör watchArray och dateArray till set.
       var title, date;
       var watchArray = [];
       var dateArray = [];
+      var dateAndTime = new Date().toLocaleString();
       var json = { title: watchArray, date: dateArray };
-
-      // https://stackoverflow.com/questions/47840449/parse-text-from-html-form-inside-table-cell-with-cheerio
 
       // Kolla vid 49:00 https://www.youtube.com/watch?v=6R7u6EMWaa4
       $('.titleText').filter(function () {
         var data = $(this);
 
-        // Kolla vad log data / title är.
-        // Testa att ändra json till title och date igen och sen pusha de till array.
-        // Är de i fel ordning går det att göra reverse
-        // Kanske skapa ett genensamt objekt för namn och datum?
-        // Kanske skapa ett till objekt och köra en for loop där man lägger in varannat array index?
         title = data
           .children()
           .children()
@@ -50,13 +47,16 @@ app.get('/scrape', function (req, res) {
       dateArray.push(date);
     });
 
-    var dateAndTime = new Date().toLocaleString();
-    var text = `${watchArray[0]} ${dateArray[0]} skickat: ${dateAndTime} nodemon`;
+    var watchAndDateArray = [watchArray[0].concat(', ' + dateArray[0])];
+    let uniqueSet = new Set(watchAndDateArray);
+    /* sessionStorage.setItem('newWatch', JSON.stringify(uniqueSet)); */
+    var text = `${watchAndDateArray}. Skickat: ${dateAndTime}`;
     console.log(text);
+
     json.title = watchArray[0];
     json.date = dateArray[0];
 
-    let transporter = nodemailer.createTransport({
+    /* let transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.EMAIL,
@@ -67,7 +67,7 @@ app.get('/scrape', function (req, res) {
     let mailoptions = {
       from: 'ksappscraper@gmail.com',
       to: 'davidgust99@gmail.com',
-      subject: 'KS test',
+      subject: `New watch available ${dateAndTime}`,
       text: text,
     };
 
@@ -77,7 +77,7 @@ app.get('/scrape', function (req, res) {
       } else {
         console.log('Email sent');
       }
-    });
+    }); */
 
     // To write to the system we will use the built in 'fs' library.
     // In this example we will pass 3 parameters to the writeFile function
@@ -93,6 +93,18 @@ app.get('/scrape', function (req, res) {
     res.send('Check your console!');
   });
 });
+
+// Denna timer laddar om localhost:8081. Näst sista parametern är antal sekunder. 3 600 000 = 1 timme
+setInterval(
+  () =>
+    request('http://localhost:8081/scrape', (err, res, body) => {
+      if (err) {
+        return console.log(err);
+      }
+      console.log(body);
+    }),
+  3600000
+);
 
 app.listen('8081');
 console.log(`Server running on: http://localhost:8081/scrape`);
