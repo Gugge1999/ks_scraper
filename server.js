@@ -6,6 +6,10 @@ var nodemailer = require('nodemailer');
 const { setInterval } = require('timers');
 require('dotenv').config();
 var app = express();
+var uniqueItems;
+
+var LocalStorage = require('node-localstorage').LocalStorage,
+  localStorage = new LocalStorage('./scratch');
 
 app.get('/scrape', function (req, res) {
   url = 'https://klocksnack.se/search/13228812/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
@@ -15,7 +19,6 @@ app.get('/scrape', function (req, res) {
       var $ = cheerio.load(html);
 
       // ideer:
-      // Gör watchArray och dateArray till set.
       var title, date;
       var watchArray = [];
       var dateArray = [];
@@ -30,8 +33,8 @@ app.get('/scrape', function (req, res) {
           .children()
           .children()
           .text()
-          .replace(/[^a-zA-ZäöåÄÖÅ0-9 ]/g, ' ') // Tar bort alla specialkaraktärer
-          .replace(/(?!\b\s+\b)\s+/g, ''); // Tar bort mellanslag
+          .replace(/[^a-zA-ZäöåÄÖÅ0-9 ]/g, ' ') // Removes all special characters
+          .replace(/(?!\b\s+\b)\s+/g, ''); // Removes spaces
 
         watchArray.push(title);
       });
@@ -41,17 +44,21 @@ app.get('/scrape', function (req, res) {
 
     $('.DateTime').filter(function () {
       var data = $(this);
-
       date = data.text();
 
+      // return dateArray.push(date[0])??? Samma med titel
       dateArray.push(date);
     });
 
     var watchAndDateArray = [watchArray[0].concat(', ' + dateArray[0])];
-    let uniqueSet = new Set(watchAndDateArray);
-    /* sessionStorage.setItem('newWatch', JSON.stringify(uniqueSet)); */
-    var text = `${watchAndDateArray}. Skickat: ${dateAndTime}`;
-    console.log(text);
+    uniqueItems = [...new Set(watchAndDateArray)];
+
+    localStorage.setItem('storedWatch', JSON.stringify(uniqueItems));
+    var storedWatches = JSON.parse(localStorage.getItem('storedWatch'));
+    console.log('Stored watch: ' + storedWatches);
+
+    var emailText = `${watchAndDateArray}. Skickat: ${dateAndTime}`;
+    console.log(emailText);
 
     json.title = watchArray[0];
     json.date = dateArray[0];
@@ -68,7 +75,7 @@ app.get('/scrape', function (req, res) {
       from: 'ksappscraper@gmail.com',
       to: 'davidgust99@gmail.com',
       subject: `New watch available ${dateAndTime}`,
-      text: text,
+      text: emailText,
     };
 
     transporter.sendMail(mailoptions, function (err, data) {
@@ -77,8 +84,8 @@ app.get('/scrape', function (req, res) {
       } else {
         console.log('Email sent');
       }
-    }); */
-
+    });
+ */
     // To write to the system we will use the built in 'fs' library.
     // In this example we will pass 3 parameters to the writeFile function
     // Parameter 1 :  output.json - this is what the created filename will be called
@@ -94,17 +101,18 @@ app.get('/scrape', function (req, res) {
   });
 });
 
-// Denna timer laddar om localhost:8081. Näst sista parametern är antal sekunder. 3 600 000 = 1 timme
-setInterval(
+// Denna timer laddar om localhost:8081. Näst sista parametern är antal millisekunder. 3 600 000 = 1 timme
+/* setInterval(
   () =>
     request('http://localhost:8081/scrape', (err, res, body) => {
       if (err) {
         return console.log(err);
+      } else {
+        console.log(body);
       }
-      console.log(body);
     }),
   3600000
-);
+); */
 
 app.listen('8081');
 console.log(`Server running on: http://localhost:8081/scrape`);
