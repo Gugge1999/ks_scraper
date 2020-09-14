@@ -7,23 +7,30 @@ const { setInterval } = require('timers');
 require('dotenv').config();
 var app = express();
 var uniqueItems;
+var numberOfTimesReloded = 0;
+var emailsSent = 0;
 
 var LocalStorage = require('node-localstorage').LocalStorage,
   localStorage = new LocalStorage('./scratch');
 
 app.get('/scrape', function (req, res) {
-  url = 'https://klocksnack.se/search/13228812/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
+  url = 'https://klocksnack.se/forums/handla-s%C3%A4ljes-bytes.11/';
 
   request(url, function (error, response, html) {
     if (!error) {
       var $ = cheerio.load(html);
 
       // ideer:
+      // Readfile gör att mail inte skickas. Tas den bort fungerar mail funktionen men inte output.json
+      // Ändra json till 0 om du vill se första elementer i en listan
       var title, date;
       var watchArray = [];
       var dateArray = [];
       var dateAndTime = new Date().toLocaleString();
-      var json = { title: watchArray, date: dateArray };
+      var json = {
+        title: watchArray,
+        date: dateArray,
+      };
 
       // Kolla vid 49:00 https://www.youtube.com/watch?v=6R7u6EMWaa4
       $('.titleText').filter(function () {
@@ -46,55 +53,61 @@ app.get('/scrape', function (req, res) {
       var data = $(this);
       date = data.text();
 
-      // return dateArray.push(date[0])??? Samma med titel
       dateArray.push(date);
     });
 
-    var watchAndDateArray = [watchArray[0].concat(', ' + dateArray[0])];
-    uniqueItems = [...new Set(watchAndDateArray)];
-
-    localStorage.setItem('storedWatch', JSON.stringify(uniqueItems));
-    var storedWatches = JSON.parse(localStorage.getItem('storedWatch'));
-    console.log('Stored watch: ' + storedWatches);
+    var watchAndDateArray = [watchArray[3].concat(', ' + dateArray[3])];
 
     var emailText = `${watchAndDateArray}. Skickat: ${dateAndTime}`;
-    console.log(emailText);
+    /* console.log('emailText: ' + emailText); */
 
-    json.title = watchArray[0];
-    json.date = dateArray[0];
+    json.title = watchArray[3];
+    json.date = dateArray[3];
 
-    /* let transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD,
-      },
-    });
-
-    let mailoptions = {
-      from: 'ksappscraper@gmail.com',
-      to: 'davidgust99@gmail.com',
-      subject: `New watch available ${dateAndTime}`,
-      text: emailText,
-    };
-
-    transporter.sendMail(mailoptions, function (err, data) {
-      if (error) {
-        console.log('error occured', err);
-      } else {
-        console.log('Email sent');
-      }
-    });
- */
     // To write to the system we will use the built in 'fs' library.
     // In this example we will pass 3 parameters to the writeFile function
     // Parameter 1 :  output.json - this is what the created filename will be called
     // Parameter 2 :  JSON.stringify(json, null, 4) - the data to write, here we do an extra step by calling JSON.stringify to make our JSON easier to read
     // Parameter 3 :  callback function - a callback function to let us know the status of our function
 
-    fs.writeFile('output.json', JSON.stringify(json, null, 4), function (err) {
-      console.log('File successfully written! - Check your project directory for the output.json file');
+    console.log('json temp data: ' + JSON.stringify(json));
+    fs.readFile('output.json', function read(err, data) {
+      console.log('data in output: ' + data);
+      if (data != JSON.stringify(json)) {
+        let transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL,
+            pass: process.env.PASSWORD,
+          },
+        });
+
+        let mailoptions = {
+          from: 'ksappscraper@gmail.com',
+          to: 'davidgust99@gmail.com',
+          subject: `New watch available ${dateAndTime}`,
+          text: emailText,
+        };
+
+        transporter.sendMail(mailoptions, function (err, data) {
+          if (error) {
+            console.log('error occured', err);
+          } else {
+            emailsSent++;
+            console.log('Email sents: ' + emailsSent);
+          }
+        });
+        setTimeout(function () {
+          fs.writeFile('output.json', JSON.stringify(json), function (err) {
+            console.log('File successfully written! - Check your project directory for the output.json file');
+          });
+        }, 5000);
+      }
     });
+
+    /* fs.writeFile('output.json', JSON.stringify(json), function (err) {
+      console.log('File successfully written! - Check your project directory for the output.json file');
+    }); */
 
     // Finally, we'll just send out a message to the browser reminding you that this app does not have a UI.
     res.send('Check your console!');
@@ -102,17 +115,18 @@ app.get('/scrape', function (req, res) {
 });
 
 // Denna timer laddar om localhost:8081. Näst sista parametern är antal millisekunder. 3 600 000 = 1 timme
-/* setInterval(
+setInterval(
   () =>
     request('http://localhost:8081/scrape', (err, res, body) => {
       if (err) {
         return console.log(err);
       } else {
-        console.log(body);
+        numberOfTimesReloded++;
+        console.log('Number of times site reloaded since restart / last email sent: ' + numberOfTimesReloded);
       }
     }),
-  3600000
-); */
+  30000
+);
 
 app.listen('8081');
 console.log(`Server running on: http://localhost:8081/scrape`);
