@@ -6,12 +6,8 @@ var nodemailer = require('nodemailer');
 const { setInterval } = require('timers');
 require('dotenv').config();
 var app = express();
-var uniqueItems;
 var numberOfTimesReloded = 0;
 var emailsSent = 0;
-
-var LocalStorage = require('node-localstorage').LocalStorage,
-  localStorage = new LocalStorage('./scratch');
 
 app.get('/scrape', function (req, res) {
   url = 'https://klocksnack.se/forums/handla-s%C3%A4ljes-bytes.11/';
@@ -22,7 +18,8 @@ app.get('/scrape', function (req, res) {
 
       // ideer:
       // Readfile gör att mail inte skickas. Tas den bort fungerar mail funktionen men inte output.json
-      // Ändra json till 0 om du vill se första elementer i en listan
+      // Ändra json till 0 om du vill se första elementer i en listan'
+      // Ta bort read i readFile
       var title, date;
       var watchArray = [];
       var dateArray = [];
@@ -59,7 +56,6 @@ app.get('/scrape', function (req, res) {
     var watchAndDateArray = [watchArray[3].concat(', ' + dateArray[3])];
 
     var emailText = `${watchAndDateArray}. Skickat: ${dateAndTime}`;
-    /* console.log('emailText: ' + emailText); */
 
     json.title = watchArray[3];
     json.date = dateArray[3];
@@ -67,7 +63,7 @@ app.get('/scrape', function (req, res) {
     // To write to the system we will use the built in 'fs' library.
     // In this example we will pass 3 parameters to the writeFile function
     // Parameter 1 :  output.json - this is what the created filename will be called
-    // Parameter 2 :  JSON.stringify(json, null, 4) - the data to write, here we do an extra step by calling JSON.stringify to make our JSON easier to read
+    // Parameter 2 :  JSON.stringify(json) - the data to write, here we do an extra step by calling JSON.stringify to make our JSON easier to read
     // Parameter 3 :  callback function - a callback function to let us know the status of our function
 
     console.log('json temp data: ' + JSON.stringify(json));
@@ -105,16 +101,12 @@ app.get('/scrape', function (req, res) {
       }
     });
 
-    /* fs.writeFile('output.json', JSON.stringify(json), function (err) {
-      console.log('File successfully written! - Check your project directory for the output.json file');
-    }); */
-
     // Finally, we'll just send out a message to the browser reminding you that this app does not have a UI.
     res.send('Check your console!');
   });
 });
 
-// Denna timer laddar om localhost:8081. Näst sista parametern är antal millisekunder. 3 600 000 = 1 timme
+// Denna intervalltimer laddar om localhost:8081. Näst sista parametern är antal millisekunder. 3 600 000 = 1 timme
 setInterval(
   () =>
     request('http://localhost:8081/scrape', (err, res, body) => {
