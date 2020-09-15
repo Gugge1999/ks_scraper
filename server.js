@@ -11,6 +11,8 @@ var emailsSent = 0;
 
 app.get('/scrape', function (req, res) {
   url = 'https://klocksnack.se/forums/handla-s%C3%A4ljes-bytes.11/';
+  /* url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
+  url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50'; */
 
   request(url, function (error, response, html) {
     if (!error) {
@@ -66,11 +68,12 @@ app.get('/scrape', function (req, res) {
     // Parameter 2 :  JSON.stringify(json) - the data to write, here we do an extra step by calling JSON.stringify to make our JSON easier to read
     // Parameter 3 :  callback function - a callback function to let us know the status of our function
 
-    console.log('json temp data: ' + JSON.stringify(json));
+    console.log('json scraped data: ' + JSON.stringify(json, null, 4));
+    var newJSONFormat = JSON.stringify(json, null, 4);
     fs.readFile('output.json', function read(err, data) {
-      console.log('data in output: ' + data);
-      if (data != JSON.stringify(json)) {
-        let transporter = nodemailer.createTransport({
+      console.log('data in output.json: ' + data);
+      if (data != newJSONFormat) {
+        /* let transporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
             user: process.env.EMAIL,
@@ -92,9 +95,10 @@ app.get('/scrape', function (req, res) {
             emailsSent++;
             console.log('Email sents: ' + emailsSent);
           }
-        });
+        }); */
+
         setTimeout(function () {
-          fs.writeFile('output.json', JSON.stringify(json), function (err) {
+          fs.writeFile('output.json', JSON.stringify(json, null, 4), function (err) {
             console.log('File successfully written! - Check your project directory for the output.json file');
           });
         }, 5000);
@@ -106,18 +110,30 @@ app.get('/scrape', function (req, res) {
   });
 });
 
-// Denna intervalltimer laddar om localhost:8081. Näst sista parametern är antal millisekunder. 3 600 000 = 1 timme
+// Denna intervalltimer laddar om localhost:8081. Näst sista parametern är antal millisekunder.
+var reloadTime = 10000;
 setInterval(
   () =>
     request('http://localhost:8081/scrape', (err, res, body) => {
+      function msToTime(reloadTime) {
+        var seconds = Math.floor((reloadTime / 1000) % 60),
+          minutes = Math.floor((reloadTime / (1000 * 60)) % 60),
+          hours = Math.floor((reloadTime / (1000 * 60 * 60)) % 24);
+
+        hours = hours < 10 ? '0' + hours : hours;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+
+        return `${hours}:${minutes}:${seconds}`;
+      }
       if (err) {
         return console.log(err);
       } else {
         numberOfTimesReloded++;
-        console.log('Number of times site reloaded since restart / last email sent: ' + numberOfTimesReloded);
+        console.log(`Number of reloads: ${numberOfTimesReloded}. Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)`);
       }
     }),
-  30000
+  reloadTime // 3600000 = 1 timme. 1800000 = 30 min
 );
 
 app.listen('8081');
