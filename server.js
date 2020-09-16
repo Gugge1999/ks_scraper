@@ -1,3 +1,4 @@
+// ideer:
 var express = require('express');
 var fs = require('fs');
 var request = require('request');
@@ -18,10 +19,6 @@ app.get('/scrape', function (req, res) {
     if (!error) {
       var $ = cheerio.load(html);
 
-      // ideer:
-      // Readfile gör att mail inte skickas. Tas den bort fungerar mail funktionen men inte output.json
-      // Ändra json till 0 om du vill se första elementer i en listan'
-      // Ta bort read i readFile
       var title, date;
       var watchArray = [];
       var dateArray = [];
@@ -31,7 +28,6 @@ app.get('/scrape', function (req, res) {
         date: dateArray,
       };
 
-      // Kolla vid 49:00 https://www.youtube.com/watch?v=6R7u6EMWaa4
       $('.titleText').filter(function () {
         var data = $(this);
 
@@ -62,15 +58,9 @@ app.get('/scrape', function (req, res) {
     json.title = watchArray[3];
     json.date = dateArray[3];
 
-    // To write to the system we will use the built in 'fs' library.
-    // In this example we will pass 3 parameters to the writeFile function
-    // Parameter 1 :  output.json - this is what the created filename will be called
-    // Parameter 2 :  JSON.stringify(json) - the data to write, here we do an extra step by calling JSON.stringify to make our JSON easier to read
-    // Parameter 3 :  callback function - a callback function to let us know the status of our function
-
-    console.log('json scraped data: ' + JSON.stringify(json, null, 4));
+    console.log(`json scraped data: ${JSON.stringify(json, null, 4)}`);
     var newJSONFormat = JSON.stringify(json, null, 4);
-    fs.readFile('output.json', function read(err, data) {
+    fs.readFile('output.json', function (err, data) {
       console.log('data in output.json: ' + data);
       if (data != newJSONFormat) {
         /* let transporter = nodemailer.createTransport({
@@ -97,6 +87,9 @@ app.get('/scrape', function (req, res) {
           }
         }); */
 
+        // Parameter 1:  output.json - this is what the created filename will be called
+        // Parameter 2:  JSON.stringify(json, null, 4) - the data to write. stringify makes it more readable. 4 means it inserts 4 white spaces before the key value pair
+        // Parameter 3:  callback function - a callback function to let us know the status of our function
         setTimeout(function () {
           fs.writeFile('output.json', JSON.stringify(json, null, 4), function (err) {
             console.log('File successfully written! - Check your project directory for the output.json file');
@@ -110,15 +103,18 @@ app.get('/scrape', function (req, res) {
   });
 });
 
+// Reload the site when the server starts
+request('http://localhost:8081/scrape', (err, res, body) => {});
+
 // Denna intervalltimer laddar om localhost:8081. Näst sista parametern är antal millisekunder.
 var reloadTime = 10000;
 setInterval(
   () =>
     request('http://localhost:8081/scrape', (err, res, body) => {
       function msToTime(reloadTime) {
-        var seconds = Math.floor((reloadTime / 1000) % 60),
-          minutes = Math.floor((reloadTime / (1000 * 60)) % 60),
-          hours = Math.floor((reloadTime / (1000 * 60 * 60)) % 24);
+        var seconds = Math.floor((reloadTime / 1000) % 60);
+        var minutes = Math.floor((reloadTime / (1000 * 60)) % 60);
+        var hours = Math.floor((reloadTime / (1000 * 60 * 60)) % 24);
 
         hours = hours < 10 ? '0' + hours : hours;
         minutes = minutes < 10 ? '0' + minutes : minutes;
@@ -138,4 +134,4 @@ setInterval(
 
 app.listen('8081');
 console.log(`Server running on: http://localhost:8081/scrape`);
-exports = module.exports = app;
+module.exports = app;
