@@ -1,4 +1,5 @@
 // ideer:
+// 1:08:06
 var express = require('express');
 var fs = require('fs');
 var request = require('request');
@@ -11,9 +12,9 @@ var numberOfTimesReloded = 0;
 var emailsSent = 0;
 
 app.get('/scrape', function (req, res) {
-  url = 'https://klocksnack.se/forums/handla-s%C3%A4ljes-bytes.11/';
-  /* url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
-  url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50'; */
+  //url = 'https://klocksnack.se/forums/handla-s%C3%A4ljes-bytes.11/';
+  url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
+  // url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50';
 
   request(url, function (error, response, html) {
     if (!error) {
@@ -51,12 +52,12 @@ app.get('/scrape', function (req, res) {
       dateArray.push(date);
     });
 
-    var watchAndDateArray = [watchArray[3].concat(', ' + dateArray[3])];
+    var watchAndDateArray = [watchArray[0].concat(', ' + dateArray[0])];
 
     var emailText = `${watchAndDateArray}. Skickat: ${dateAndTime}`;
 
-    json.title = watchArray[3];
-    json.date = dateArray[3];
+    json.title = watchArray[0];
+    json.date = dateArray[0];
 
     console.log(`json scraped data: ${JSON.stringify(json, null, 4)}`);
     var newJSONFormat = JSON.stringify(json, null, 4);
@@ -106,22 +107,24 @@ app.get('/scrape', function (req, res) {
 // Reload the site when the server starts
 request('http://localhost:8081/scrape', (err, res, body) => {});
 
-// Denna intervalltimer laddar om localhost:8081. Näst sista parametern är antal millisekunder.
-var reloadTime = 10000;
+// Konvertera millisekunder till timmar, minuter och sekunder
+function msToTime(reloadTime) {
+  var seconds = Math.floor((reloadTime / 1000) % 60);
+  var minutes = Math.floor((reloadTime / (1000 * 60)) % 60);
+  var hours = Math.floor((reloadTime / (1000 * 60 * 60)) % 24);
+
+  hours = hours < 10 ? '0' + hours : hours;
+  minutes = minutes < 10 ? '0' + minutes : minutes;
+  seconds = seconds < 10 ? '0' + seconds : seconds;
+
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+// Denna intervalltimer laddar om localhost:8081/scrape.
+var reloadTime = 10000; // 3600000 ms = 1 timme. 1800000 ms = 30 min
 setInterval(
   () =>
     request('http://localhost:8081/scrape', (err, res, body) => {
-      function msToTime(reloadTime) {
-        var seconds = Math.floor((reloadTime / 1000) % 60);
-        var minutes = Math.floor((reloadTime / (1000 * 60)) % 60);
-        var hours = Math.floor((reloadTime / (1000 * 60 * 60)) % 24);
-
-        hours = hours < 10 ? '0' + hours : hours;
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        seconds = seconds < 10 ? '0' + seconds : seconds;
-
-        return `${hours}:${minutes}:${seconds}`;
-      }
       if (err) {
         return console.log(err);
       } else {
@@ -129,7 +132,7 @@ setInterval(
         console.log(`Number of reloads: ${numberOfTimesReloded}. Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)`);
       }
     }),
-  reloadTime // 3600000 = 1 timme. 1800000 = 30 min
+  reloadTime
 );
 
 app.listen('8081');
