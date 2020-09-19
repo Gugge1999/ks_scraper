@@ -29,15 +29,16 @@ app.get('/scrape', function (req, res) {
         date: dateArray,
       };
 
-      $('.titleText').filter(function () {
+      $('.title').filter(function () {
         var data = $(this);
 
         title = data
           .children()
-          .children()
           .text()
-          .replace(/[^a-zA-ZäöåÄÖÅ0-9 ]/g, ' ') // Removes all special characters
-          .replace(/(?!\b\s+\b)\s+/g, ''); // Removes spaces
+          .replace(/(?!\b\s+\b)\s+/g, '') // Removes spaces
+          .replace(/Tillbakadragen|Avslutad|Säljes|Bytes|/gi, '')
+          .replace(/\//g, '') // Tar bort /
+          .trim();
 
         watchArray.push(title);
       });
@@ -60,10 +61,10 @@ app.get('/scrape', function (req, res) {
     json.date = dateArray[0];
 
     console.log(`json scraped data: ${JSON.stringify(json, null, 4)}`);
-    var newJSONFormat = JSON.stringify(json, null, 4);
-    fs.readFile('output.json', function (err, data) {
-      console.log('data in output.json: ' + data);
-      if (data != newJSONFormat) {
+    var formatedJSON = JSON.stringify(json, null, 4);
+    fs.readFile('output.json', function (err, storedData) {
+      console.log('data in output.json: ' + storedData);
+      if (storedData != formatedJSON) {
         /* let transporter = nodemailer.createTransport({
           service: 'gmail',
           auth: {
