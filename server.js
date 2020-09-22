@@ -8,9 +8,17 @@ var nodemailer = require('nodemailer');
 const { setInterval } = require('timers');
 require('dotenv').config();
 var app = express();
+
 var numberOfTimesReloded = 0;
-var emailsSent = 0;
 var indexPos = 0;
+var title, date;
+var watchArray = [];
+var dateArray = [];
+var dateAndTime = new Date().toLocaleString();
+var json = {
+  title: watchArray,
+  date: dateArray,
+};
 
 app.get('/scrape', function (req, res) {
   //url = 'https://klocksnack.se/forums/handla-s%C3%A4ljes-bytes.11/';
@@ -21,36 +29,19 @@ app.get('/scrape', function (req, res) {
     if (!error) {
       var $ = cheerio.load(html);
 
-      var title, date;
-      var watchArray = [];
-      var dateArray = [];
-      var dateAndTime = new Date().toLocaleString();
-      var json = {
-        title: watchArray,
-        date: dateArray,
-      };
+      var watch = $('.title')
+        .children()
+        .first()
+        .text()
+        .replace(/Tillbakadragen|Avslutad|Säljes|Bytes|\//gi, '') // Remove sale status of the watch
+        .trim();
+      watchArray.push(watch);
 
-      $('.title').filter(function () {
-        var data = $(this);
-
-        title = data
-          .children()
-          .text()
-          .replace(/Tillbakadragen|Avslutad|Säljes|Bytes|\//gi, '') // Remove sale status
-          .trim();
-
-        watchArray.push(title);
-      });
+      var date = $('.DateTime').first().text();
+      dateArray.push(date);
     } else {
       console.log(error);
     }
-
-    $('.DateTime').filter(function () {
-      var data = $(this);
-      date = data.text();
-
-      dateArray.push(date);
-    });
 
     var emailText = `${[watchArray[indexPos].concat(`. Upplagd: ${dateArray[indexPos]}`)]}. Skickat: ${dateAndTime}`;
 
@@ -71,8 +62,8 @@ app.get('/scrape', function (req, res) {
         });
 
         let mailoptions = {
-          from: 'ksappscraper@gmail.com',
-          to: 'davidgust99@gmail.com',
+          from: process.env.EMAIL,
+          to: process.env.EMAILTO,
           subject: `New watch available ${dateAndTime}`,
           text: emailText,
         };
@@ -81,8 +72,7 @@ app.get('/scrape', function (req, res) {
           if (error) {
             console.log('error occured', err);
           } else {
-            emailsSent++;
-            console.log('Email sent: ' + emailsSent);
+            console.log('\u001B[34mEmail sent.');
 
             // Parameter 1:  output.json - this is what the created filename will be called
             // Parameter 2:  JSON.stringify(json, null, 4) - the data to write. stringify makes it more readable. 4 means it inserts 4 white spaces before the key value pair
