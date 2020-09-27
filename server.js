@@ -11,40 +11,40 @@ var app = express();
 var numberOfTimesReloded = 0;
 var dateAndTime = new Date().toLocaleString();
 var json = {
-  title: '',
+  watchName: '',
   date: '',
 };
 
 app.get('/scrape', function (req, res) {
-  //url = 'https://klocksnack.se/forums/handla-s%C3%A4ljes-bytes.11/';
-  const url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
-  //url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50';
+  //const url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
+  const url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50';
 
   request(url, function (error, response, html) {
     if (!error) {
       var $ = cheerio.load(html);
 
       // ideer:
-      // Test branch v2
-      var watch = $('.title')
+      // Testing2 branch change asdf
+      var watchName = $('.title')
         .children()
         .first()
         .text()
         .replace(/Tillbakadragen|Avslutad|Säljes|Bytes|\//gi, '') // Remove sale status of the watch
         .trim();
-      json.title = watch;
+      json.watchName = watchName;
 
       var date = $('.DateTime').first().text();
       json.date = date;
     } else {
       console.log(error);
     }
-    var emailText = `${json.title}. Upplagd: ${json.date}. Skickat: ${dateAndTime}`;
+    var emailText = `${json.watchName}. Upplagd: ${json.date}. Skickat: ${dateAndTime}`;
 
-    console.log(`json scraped data: ${JSON.stringify(json, null, 4)}`);
     var formatedJSON = JSON.stringify(json, null, 4);
+
     fs.readFile('output.json', function (err, storedData) {
-      console.log('data in output.json: ' + storedData);
+      console.log(`json scraped data: ${formatedJSON}`);
+      console.log(`data in output.json: ${storedData}`);
       if (storedData != formatedJSON) {
         let transporter = nodemailer.createTransport({
           service: 'gmail',
