@@ -24,11 +24,8 @@ app.get('/scrape', function (req, res) {
       var $ = cheerio.load(html);
 
       // ideer:
-<<<<<<< HEAD
-      // Branch test
-=======
       // Testing2 branch change asdf
->>>>>>> testing2
+      // Feature 1 test
       var watchName = $('.title')
         .children()
         .first()
