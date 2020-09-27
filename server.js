@@ -25,10 +25,7 @@ app.get('/scrape', function (req, res) {
 
       // ideer:
       // Testing2 branch change asdf
-<<<<<<< HEAD
-=======
       // Feature 1 test
->>>>>>> Feature1
       var watchName = $('.title')
         .children()
         .first()
