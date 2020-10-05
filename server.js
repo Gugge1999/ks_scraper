@@ -16,16 +16,13 @@ var json = {
 };
 
 app.get('/scrape', function (req, res) {
-  //const url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
-  const url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50';
+  const url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
+  //const url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50';
 
   request(url, function (error, response, html) {
     if (!error) {
       var $ = cheerio.load(html);
 
-      // ideer:
-      // Testing2 branch change asdf
-      // Feature 1 test
       var watchName = $('.title')
         .children()
         .first()
@@ -66,7 +63,8 @@ app.get('/scrape', function (req, res) {
           if (error) {
             console.log('error occured', err);
           } else {
-            console.log('\u001B[34mEmail sent.');
+            console.log('Email sent.');
+            //console.log('\u001B[34mEmail sent.');
 
             // Parameter 1: output.json - this is what the created filename will be called
             // Parameter 2: JSON.stringify(json, null, 4) - the data to write. stringify makes it more readable. 4 means it inserts 4 white spaces before the key.
@@ -101,7 +99,7 @@ function msToTime(reloadTime) {
 }
 
 // This interval timer reloads localhost:8081/scrape
-var reloadTime = 5000; // 3600000 ms = 1 hour. 1800000 ms = 30 min
+var reloadTime = 600000; // 3600000 ms = 1 hour. 1800000 ms = 30 min
 setInterval(
   () =>
     request('http://localhost:8081/scrape', (err, res, body) => {
