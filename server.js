@@ -16,7 +16,8 @@ var json = {
 };
 
 app.get('/scrape', function (req, res) {
-  const url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
+  const url = 'https://klocksnack.se/search/13438427/?q=rolex&t=post&o=date&c[title_only]=1&c[node]=40+66+70+11+50+36+29+65';
+  //const url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
   //const url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50';
 
   request(url, function (error, response, html) {
@@ -83,7 +84,7 @@ app.get('/scrape', function (req, res) {
 });
 
 // Scrapes the site when the server starts by requesting it
-request('http://localhost:8081/scrape', (err, res, body) => {});
+request('http://localhost:8080/scrape', (err, res, body) => {});
 
 // Convert ms to hours, mintues and seconds
 function msToTime(reloadTime) {
@@ -102,7 +103,7 @@ function msToTime(reloadTime) {
 var reloadTime = 600000; // 3600000 ms = 1 hour. 1800000 ms = 30 min
 setInterval(
   () =>
-    request('http://localhost:8081/scrape', (err, res, body) => {
+    request('http://localhost:8080/scrape', (err, res, body) => {
       if (err) {
         return console.log(err);
       } else {
@@ -113,6 +114,6 @@ setInterval(
   reloadTime
 );
 
-app.listen('8081');
-console.log(`Server running on: http://localhost:8081/scrape`);
+app.listen('8080');
+console.log(`Server running on: http://localhost:8080/scrape`);
 module.exports = app;
