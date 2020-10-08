@@ -18,7 +18,7 @@ var json = {
 app.get('/scrape', function (req, res) {
   const url = 'https://klocksnack.se/search/13438427/?q=rolex&t=post&o=date&c[title_only]=1&c[node]=40+66+70+11+50+36+29+65';
   //const url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
-  //const url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50';
+  // const url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50';
 
   request(url, function (error, response, html) {
     if (!error) {
@@ -33,11 +33,15 @@ app.get('/scrape', function (req, res) {
       json.watchName = watchName;
 
       var date = $('.DateTime').first().text();
+      // This if satement removes the time from date if the watch post is newer than an hour.
+      if (date.length > 15) {
+        date = date.slice(0, 15).trim();
+      }
       json.date = date;
     } else {
       console.log(error);
     }
-    var emailText = `${json.watchName}. Upplagd: ${json.date}. Skickat: ${dateAndTime}`;
+    var emailText = `${json.watchName}. Upplagd: ${json.date}. Mail Skickat: ${dateAndTime}`;
 
     var formatedJSON = JSON.stringify(json, null, 4);
 
@@ -56,15 +60,14 @@ app.get('/scrape', function (req, res) {
         let mailoptions = {
           from: process.env.EMAIL,
           to: process.env.EMAILTO,
-          subject: `New watch available ${dateAndTime}`,
+          subject: `Ny klocka tillgänglig ${dateAndTime}`,
           text: emailText,
         };
-
         transporter.sendMail(mailoptions, function (err, data) {
           if (error) {
             console.log('error occured', err);
           } else {
-            console.log('Email sent.');
+            console.log('Email sent: ' + dateAndTime);
             //console.log('\u001B[34mEmail sent.');
 
             // Parameter 1: output.json - this is what the created filename will be called
@@ -100,7 +103,7 @@ function msToTime(reloadTime) {
 }
 
 // This interval timer reloads localhost:8081/scrape
-var reloadTime = 600000; // 3600000 ms = 1 hour. 1800000 ms = 30 min
+var reloadTime = 600000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
 setInterval(
   () =>
     request('http://localhost:8080/scrape', (err, res, body) => {
@@ -108,7 +111,7 @@ setInterval(
         return console.log(err);
       } else {
         numberOfTimesReloded++;
-        console.log(`Number of reloads: ${numberOfTimesReloded + 1}. Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)`);
+        console.log(`Number of reloads: ${numberOfTimesReloded + 1}. Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\n`);
       }
     }),
   reloadTime
