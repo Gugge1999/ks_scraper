@@ -1,29 +1,29 @@
 'use strict';
-var express = require('express');
-var fs = require('fs');
-var request = require('request');
-var cheerio = require('cheerio');
-var nodemailer = require('nodemailer');
+let express = require('express');
+let fs = require('fs');
+let request = require('request');
+let cheerio = require('cheerio');
+let nodemailer = require('nodemailer');
 const { setInterval } = require('timers');
 require('dotenv').config();
-var app = express();
+let app = express();
 
-var numberOfTimesReloded = 0;
-var dateAndTime = new Date().toLocaleString();
-var json = {
+let numberOfTimesReloded = 0;
+let dateAndTime = new Date().toLocaleString();
+let json = {
   watchName: '',
   date: '',
 };
 
 app.get('/scrape', function (req, res) {
-  //const url = 'https://klocksnack.se/search/2731/?q=556&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
-  const url = 'https://klocksnack.se/search/2670/?q=sinn&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
+  const url = 'https://klocksnack.se/search/2731/?q=556&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
+  //const url = 'https://klocksnack.se/search/2670/?q=sinn&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
 
   request(url, function (error, response, html) {
     if (!error) {
-      var $ = cheerio.load(html);
+      let $ = cheerio.load(html);
 
-      var watchName = $('.contentRow-title')
+      let watchName = $('.contentRow-title')
         .children()
         .first()
         .text()
@@ -31,14 +31,14 @@ app.get('/scrape', function (req, res) {
         .trim();
       json.watchName = watchName;
 
-      var date = $('.u-dt').attr('data-date-string');
+      let date = $('.u-dt').attr('data-date-string');
       json.date = date;
     } else {
       console.log(error);
     }
-    var emailText = `${json.watchName}. Upplagd: ${json.date}. Detta mail mail skickades: ${dateAndTime}`;
+    let emailText = `${json.watchName}. Upplagd: ${json.date}. Detta mail mail skickades: ${dateAndTime}`;
 
-    var formatedJSON = JSON.stringify(json, null, 4);
+    let formatedJSON = JSON.stringify(json, null, 4);
 
     fs.readFile('output.json', function (err, storedData) {
       console.log(`json scraped data: ${formatedJSON}`);
@@ -81,14 +81,11 @@ app.get('/scrape', function (req, res) {
   });
 });
 
-// Scrapes the site when the server starts by requesting it
-request('http://localhost:8080/scrape', (err, res, body) => {});
-
 // Convert ms to hours, mintues and seconds
 function msToTime(reloadTime) {
-  var seconds = Math.floor((reloadTime / 1000) % 60);
-  var minutes = Math.floor((reloadTime / (1000 * 60)) % 60);
-  var hours = Math.floor((reloadTime / (1000 * 60 * 60)) % 24);
+  let seconds = Math.floor((reloadTime / 1000) % 60);
+  let minutes = Math.floor((reloadTime / (1000 * 60)) % 60);
+  let hours = Math.floor((reloadTime / (1000 * 60 * 60)) % 24);
 
   hours = hours < 10 ? '0' + hours : hours;
   minutes = minutes < 10 ? '0' + minutes : minutes;
@@ -98,7 +95,13 @@ function msToTime(reloadTime) {
 }
 
 // This interval timer reloads localhost:8081/scrape
-var reloadTime = 600000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
+let reloadTime = 600000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
+
+// Scrapes the site when the server starts by requesting it
+request('http://localhost:8080/scrape', (err, res, body) => {
+  console.log(`Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\n`);
+});
+
 setInterval(
   () =>
     request('http://localhost:8080/scrape', (err, res, body) => {
