@@ -16,15 +16,18 @@ var json = {
 };
 
 app.get('/scrape', function (req, res) {
-  const url = 'https://klocksnack.se/search/13438427/?q=rolex&t=post&o=date&c[title_only]=1&c[node]=40+66+70+11+50+36+29+65';
+  //const url = 'https://klocksnack.se/search/13438427/?q=rolex&t=post&o=date&c[title_only]=1&c[node]=40+66+70+11+50+36+29+65';
   //const url = 'https://klocksnack.se/search/13278215/?q=556&t=post&o=date&c[title_only]=1&c[node]=11+50';
   // const url = 'https://klocksnack.se/search/13278222/?q=6139&t=post&o=date&c[title_only]=1&c[node]=11+50';
+  const url = 'https://klocksnack.se/search/2693/?q=6139&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
 
   request(url, function (error, response, html) {
     if (!error) {
       var $ = cheerio.load(html);
 
-      var watchName = $('.title')
+      // ideé?
+      // Läg till så att man ser vilken address som använd
+      var watchName = $('.contentRow-title')
         .children()
         .first()
         .text()
@@ -32,16 +35,13 @@ app.get('/scrape', function (req, res) {
         .trim();
       json.watchName = watchName;
 
-      var date = $('.DateTime').first().text();
+      var date = $('.u-dt').attr('data-date-string');
       // This if satement removes the time from date if the watch post is newer than an hour.
-      if (date.length > 15) {
-        date = date.slice(0, 15).trim();
-      }
       json.date = date;
     } else {
       console.log(error);
     }
-    var emailText = `${json.watchName}. Upplagd: ${json.date}. Mail Skickat: ${dateAndTime}`;
+    var emailText = `${json.watchName}. Upplagd: ${json.date}. Detta mail mail skickades: ${dateAndTime}`;
 
     var formatedJSON = JSON.stringify(json, null, 4);
 
@@ -103,7 +103,7 @@ function msToTime(reloadTime) {
 }
 
 // This interval timer reloads localhost:8081/scrape
-var reloadTime = 600000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
+var reloadTime = 10000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
 setInterval(
   () =>
     request('http://localhost:8080/scrape', (err, res, body) => {
