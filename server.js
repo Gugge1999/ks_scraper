@@ -9,9 +9,6 @@ require('dotenv').config();
 let app = express();
 
 let numberOfTimesReloded = 0;
-let dateAndTime = new Date().toLocaleString();
-
-
 let json = {
   watchName: '',
   date: '',
@@ -20,6 +17,8 @@ let json = {
 app.get('/scrape', function (req, res) {
   const url = 'https://klocksnack.se/search/2731/?q=556&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
   //const url = 'https://klocksnack.se/search/2670/?q=sinn&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
+
+  let dateAndTime = new Date().toLocaleString();
 
   request(url, function (error, response, html) {
     if (!error) {
@@ -97,7 +96,7 @@ function msToTime(reloadTime) {
 }
 
 // This interval timer reloads localhost:8081/scrape
-const reloadTime = 5000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
+const reloadTime = 600000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
 
 // Scrapes the site when the server starts by requesting it
 request('http://localhost:8080/scrape', (err, res, body) => {
