@@ -10,8 +10,8 @@ let app = express();
 
 let numberOfTimesReloded = 0;
 let dateAndTime = new Date().toLocaleString();
-let today = new Date();
-let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+
+
 let json = {
   watchName: '',
   date: '',
@@ -60,7 +60,7 @@ app.get('/scrape', function (req, res) {
           subject: `Ny klocka tillgänglig`,
           text: emailText,
         };
-        transporter.sendMail(mailoptions, function (err, data) {
+        /* transporter.sendMail(mailoptions, function (err, data) {
           if (error) {
             console.log('error occured', err);
           } else {
@@ -74,7 +74,7 @@ app.get('/scrape', function (req, res) {
               console.log('File successfully written! - Check your project directory for the output.json file');
             });
           }
-        });
+        }); */
       }
     });
 
@@ -97,10 +97,11 @@ function msToTime(reloadTime) {
 }
 
 // This interval timer reloads localhost:8081/scrape
-const reloadTime = 60000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
+const reloadTime = 5000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
 
 // Scrapes the site when the server starts by requesting it
 request('http://localhost:8080/scrape', (err, res, body) => {
+  let time = new Date().toLocaleTimeString();
   console.log(`Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\nTime of reload: ${time}\n`);
 });
 
@@ -110,6 +111,7 @@ setInterval(
       if (err) {
         return console.log(err);
       } else {
+        let time = new Date().toLocaleTimeString();
         numberOfTimesReloded++;
         console.log(`Number of reloads: ${numberOfTimesReloded + 1}. Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\nTime of reload: ${time}\n`);
       }
