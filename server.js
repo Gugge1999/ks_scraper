@@ -59,7 +59,7 @@ app.get('/scrape', function (req, res) {
           subject: `Ny klocka tillgänglig`,
           text: emailText,
         };
-        /* transporter.sendMail(mailoptions, function (err, data) {
+        transporter.sendMail(mailoptions, function (err, data) {
           if (error) {
             console.log('error occured', err);
           } else {
@@ -73,7 +73,7 @@ app.get('/scrape', function (req, res) {
               console.log('File successfully written! - Check your project directory for the output.json file');
             });
           }
-        }); */
+        });
       }
     });
 
