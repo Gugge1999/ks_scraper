@@ -65,7 +65,7 @@ app.get('/scrape', function (req, res) {
             console.log('error occured', err);
           } else {
             console.log('Email sent: ' + dateAndTime);
-            //console.log('\u001B[34mEmail sent.'); Blå(?) text.
+            //console.log('\u001B[34mEmail sent.'); Text med blå färg.
 
             // Parameter 1: output.json - this is what the created filename will be called
             // Parameter 2: JSON.stringify(json, null, 4) - the data to write. stringify makes it more readable. 4 means it inserts 4 white spaces before the key.
@@ -97,11 +97,11 @@ function msToTime(reloadTime) {
 }
 
 // This interval timer reloads localhost:8081/scrape
-const reloadTime = 5000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
+const reloadTime = 60000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
 
 // Scrapes the site when the server starts by requesting it
 request('http://localhost:8080/scrape', (err, res, body) => {
-  console.log(`Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\n`);
+  console.log(`Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\nTime of reload: ${time}\n`);
 });
 
 setInterval(
