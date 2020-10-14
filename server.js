@@ -10,6 +10,8 @@ let app = express();
 
 let numberOfTimesReloded = 0;
 let dateAndTime = new Date().toLocaleString();
+let today = new Date();
+let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
 let json = {
   watchName: '',
   date: '',
@@ -95,7 +97,7 @@ function msToTime(reloadTime) {
 }
 
 // This interval timer reloads localhost:8081/scrape
-let reloadTime = 600000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
+const reloadTime = 5000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
 
 // Scrapes the site when the server starts by requesting it
 request('http://localhost:8080/scrape', (err, res, body) => {
@@ -109,7 +111,7 @@ setInterval(
         return console.log(err);
       } else {
         numberOfTimesReloded++;
-        console.log(`Number of reloads: ${numberOfTimesReloded + 1}. Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\n`);
+        console.log(`Number of reloads: ${numberOfTimesReloded + 1}. Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\nTime of reload: ${time}\n`);
       }
     }),
   reloadTime
