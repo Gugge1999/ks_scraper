@@ -43,7 +43,7 @@ app.get('/scrape', function (req, res) {
 
     fs.readFile('output2.json', function (err, storedData) {
       console.log(`json scraped data: ${formatedJSON}`);
-      console.log(`data in output.json: ${storedData}`);
+      console.log(`data in output2.json: ${storedData}`);
       if (storedData != formatedJSON) {
         let transporter = nodemailer.createTransport({
           service: 'gmail',
@@ -66,11 +66,11 @@ app.get('/scrape', function (req, res) {
             console.log('Email sent: ' + dateAndTime);
             //console.log('\u001B[34mEmail sent.'); Text med blå färg.
 
-            // Parameter 1: output.json - this is what the created filename will be called
+            // Parameter 1: output2.json - this is what the created filename will be called
             // Parameter 2: JSON.stringify(json, null, 4) - the data to write. stringify makes it more readable. 4 means it inserts 4 white spaces before the key.
             // Parameter 3: callback function - a callback function to let us know the status of our function
             fs.writeFile('output2.json', JSON.stringify(json, null, 4), function (err) {
-              console.log('File successfully written! - Check your project directory for the output.json file');
+              console.log('File successfully written! - Check your project directory for the output2.json file');
             });
           }
         });
