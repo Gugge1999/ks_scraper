@@ -24,6 +24,7 @@ app.get('/scrape', function (req, res) {
     if (!error) {
       let $ = cheerio.load(html);
 
+      // Toggle terminal: Ctrl + ö
       let watchName = $('.contentRow-title')
         .children()
         .first()
@@ -61,7 +62,7 @@ app.get('/scrape', function (req, res) {
         };
         transporter.sendMail(mailoptions, function (err, data) {
           if (error) {
-            console.log('error occured', err);
+            console.log('Error occured', err);
           } else {
             console.log('Email sent: ' + dateAndTime);
             //console.log('\u001B[34mEmail sent.'); Text med blå färg.
@@ -112,7 +113,11 @@ setInterval(
       } else {
         let time = new Date().toLocaleTimeString();
         numberOfTimesReloded++;
-        console.log(`Number of reloads: ${numberOfTimesReloded + 1}. Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\nTime of reload: ${time}\n`);
+        console.log(
+          `Number of reloads: ${numberOfTimesReloded + 1}. Site reloads every: ${msToTime(
+            reloadTime
+          )} (hh/mm/ss)\nTime of reload: ${time}\n`
+        );
       }
     }),
   reloadTime
