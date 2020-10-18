@@ -2,3 +2,4 @@ node_modules
 .env
 output1.json
 output2.json
+email_logs.txt

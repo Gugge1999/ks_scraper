@@ -1,12 +1,12 @@
 'use strict';
+require('dotenv').config();
 let express = require('express');
+let app = express();
 let fs = require('fs');
 let request = require('request');
 let cheerio = require('cheerio');
 let nodemailer = require('nodemailer');
 const { setInterval } = require('timers');
-require('dotenv').config();
-let app = express();
 
 let numberOfTimesReloded = 0;
 let json = {
@@ -15,17 +15,17 @@ let json = {
 };
 
 app.get('/scrape', function (req, res) {
-  const url = 'https://klocksnack.se/search/2731/?q=556&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
-  //const url = 'https://klocksnack.se/search/2670/?q=sinn&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
-
+  //const url = 'https://klocksnack.se/search/2731/?q=556&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
+  const url = 'https://klocksnack.se/search/23458/?q=6139&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date&g=1';
   let dateAndTime = new Date().toLocaleString();
-
   request(url, function (error, response, html) {
     if (!error) {
       let $ = cheerio.load(html);
 
       // Toggle terminal: Ctrl + ö
-      let watchName = $('.contentRow-title')
+      // Gör en log för alla skickade mail
+      // Skapa två endpoints istället för två filer...
+      var watchName = $('.contentRow-title')
         .children()
         .first()
         .text()
@@ -33,11 +33,12 @@ app.get('/scrape', function (req, res) {
         .trim();
       json.watchName = watchName;
 
-      let date = $('.u-dt').attr('data-date-string');
+      var date = $('.u-dt').attr('data-date-string');
       json.date = date;
     } else {
       console.log(error);
     }
+
     let emailText = `${json.watchName}. Upplagd: ${json.date}. Detta mail mail skickades: ${dateAndTime}`;
 
     let formatedJSON = JSON.stringify(json, null, 4);
@@ -53,19 +54,27 @@ app.get('/scrape', function (req, res) {
             pass: process.env.PASSWORD,
           },
         });
-
         let mailoptions = {
           from: process.env.EMAIL,
           to: process.env.EMAILTO,
           subject: `Ny klocka tillgänglig`,
           text: emailText,
         };
+
         transporter.sendMail(mailoptions, function (err, data) {
           if (error) {
             console.log('Error occured', err);
           } else {
             console.log('Email sent: ' + dateAndTime);
             //console.log('\u001B[34mEmail sent.'); Text med blå färg.
+
+            // Logs information related to the watch to a textfile
+            fs.appendFile('email_logs.txt', `Email sent: ${dateAndTime}\nWatch name: ${watchName}\nDate: ${date}\n\n`, function (err) {
+              if (err) {
+                console.log(err);
+              }
+              console.log('Wrote successfully to email_logs.txt');
+            });
 
             // Parameter 1: output1.json - this is what the created filename will be called
             // Parameter 2: JSON.stringify(json, null, 4) - the data to write. stringify makes it more readable. 4 means it inserts 4 white spaces before the key.
