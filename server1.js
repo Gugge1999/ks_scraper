@@ -8,22 +8,26 @@ let cheerio = require('cheerio');
 let nodemailer = require('nodemailer');
 const { setInterval } = require('timers');
 
-let numberOfTimesReloded = 0;
+let numberOfTimesReloded = 1;
 let json = {
   watchName: '',
   date: '',
 };
 
+function getTime() {
+  return new Date().toLocaleString();
+}
+
 app.get('/scrape', function (req, res) {
+  const url = 'https://klocksnack.se/search/46733/?q=sinn&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date&g=1';
   //const url = 'https://klocksnack.se/search/2731/?q=556&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date';
-  const url = 'https://klocksnack.se/search/23458/?q=6139&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date&g=1';
-  let dateAndTime = new Date().toLocaleString();
+  //const url = 'https://klocksnack.se/search/23458/?q=6139&t=post&c[child_nodes]=1&c[nodes][0]=11&c[title_only]=1&o=date&g=1';
+
   request(url, function (error, response, html) {
     if (!error) {
       let $ = cheerio.load(html);
 
       // Toggle terminal: Ctrl + ö
-      // Gör en log för alla skickade mail
       // Skapa två endpoints istället för två filer...
       var watchName = $('.contentRow-title')
         .children()
@@ -39,11 +43,12 @@ app.get('/scrape', function (req, res) {
       console.log(error);
     }
 
-    let emailText = `${json.watchName}. Upplagd: ${json.date}. Detta mail mail skickades: ${dateAndTime}`;
+    let emailText = `${json.watchName}. Upplagd: ${json.date}. Detta mail mail skickades: ${getTime()}`;
 
     let formatedJSON = JSON.stringify(json, null, 4);
 
     fs.readFile('output1.json', function (err, storedData) {
+      if (err) throw err;
       console.log(`json scraped data: ${formatedJSON}`);
       console.log(`data in output1.json: ${storedData}`);
       if (storedData != formatedJSON) {
@@ -61,15 +66,15 @@ app.get('/scrape', function (req, res) {
           text: emailText,
         };
 
-        transporter.sendMail(mailoptions, function (err, data) {
+        transporter.sendMail(mailoptions, function (err) {
           if (error) {
             console.log('Error occured', err);
           } else {
-            console.log('Email sent: ' + dateAndTime);
+            console.log('Email sent: ' + getTime());
             //console.log('\u001B[34mEmail sent.'); Text med blå färg.
 
             // Logs information related to the watch to a textfile
-            fs.appendFile('email_logs.txt', `Email sent: ${dateAndTime}\nWatch name: ${watchName}\nDate: ${date}\n\n`, function (err) {
+            fs.appendFile('email_logs.txt', `Email sent: ${getTime()}\nWatch name: ${watchName}\nDate: ${date}\n\n`, function (err) {
               if (err) {
                 console.log(err);
               }
@@ -80,6 +85,9 @@ app.get('/scrape', function (req, res) {
             // Parameter 2: JSON.stringify(json, null, 4) - the data to write. stringify makes it more readable. 4 means it inserts 4 white spaces before the key.
             // Parameter 3: callback function - a callback function to let us know the status of our function
             fs.writeFile('output1.json', JSON.stringify(json, null, 4), function (err) {
+              if (err) {
+                throw err;
+              }
               console.log('File successfully written! - Check your project directory for the output1.json file');
             });
           }
@@ -106,26 +114,30 @@ function msToTime(reloadTime) {
 }
 
 // This interval timer reloads localhost:8081/scrape
-const reloadTime = 600000; // 3600000 ms = 1 hour. 1800000 ms = 30 min 600000 = 10min
+const reloadTime = 1800000; // 3600000 ms = 1 hour. 1800000 ms = 30 min. 600000 = 10min.
 
-// Scrapes the site when the server starts by requesting it
-request('http://localhost:8080/scrape', (err, res, body) => {
-  let time = new Date().toLocaleTimeString();
-  console.log(`Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\nTime of reload: ${time}\n`);
+// Scrapes the site when the server starts by requesting the endpoint
+request('http://localhost:8080/scrape', (err) => {
+  if (err) {
+    throw err;
+  } else {
+    console.log(
+      `Number of reloads: ${numberOfTimesReloded}. Site reloads every: ${msToTime(reloadTime)} (hh/mm/ss)\nTime of reload: ${getTime()}\n\n`
+    );
+  }
 });
 
 setInterval(
   () =>
-    request('http://localhost:8080/scrape', (err, res, body) => {
+    request('http://localhost:8080/scrape', (err) => {
       if (err) {
         return console.log(err);
       } else {
-        let time = new Date().toLocaleTimeString();
         numberOfTimesReloded++;
         console.log(
-          `Number of reloads: ${numberOfTimesReloded + 1}. Site reloads every: ${msToTime(
+          `Number of reloads: ${numberOfTimesReloded}. Site reloads every: ${msToTime(
             reloadTime
-          )} (hh/mm/ss)\nTime of reload: ${time}\n`
+          )} (hh/mm/ss)\nTime of reload: ${getTime()}\n\n`
         );
       }
     }),
