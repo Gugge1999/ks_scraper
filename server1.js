@@ -28,7 +28,7 @@ app.get('/scrape', function (req, res) {
       let $ = cheerio.load(html);
 
       // Toggle terminal: Ctrl + ö
-      // Skapa två endpoints istället för två filer...
+      // Create two get methods instead of two files...
       var watchName = $('.contentRow-title')
         .children()
         .first()
@@ -53,7 +53,9 @@ app.get('/scrape', function (req, res) {
       console.log(`data in output1.json: ${storedData}`);
       if (storedData != formatedJSON) {
         let transporter = nodemailer.createTransport({
-          service: 'gmail',
+          host: 'smtp.zoho.eu',
+          port: 465,
+          secure: true,
           auth: {
             user: process.env.EMAIL,
             pass: process.env.PASSWORD,
@@ -71,7 +73,7 @@ app.get('/scrape', function (req, res) {
             console.log('Error occured', err);
           } else {
             console.log('Email sent: ' + getTime());
-            //console.log('\u001B[34mEmail sent.'); Text med blå färg.
+            //console.log('\u001B[34mEmail sent.'); Log text with blue color.
 
             // Logs information related to the watch to a textfile
             fs.appendFile('email_logs.txt', `Email sent: ${getTime()}\nWatch name: ${watchName}\nDate: ${date}\n\n`, function (err) {
@@ -145,5 +147,5 @@ setInterval(
 );
 
 app.listen('8080');
-console.log(`Server running on: http://localhost:8080/scrape`);
+console.log(`Server running at: http://localhost:8080/scrape`);
 module.exports = app;
